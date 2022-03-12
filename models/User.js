@@ -16,9 +16,9 @@ const userSchema = new Schema({
         // Must match a valid email address (look into Mongoose's matching validation)
     },
 
-    thoughts: [thoughtSchema],
+    thoughts: [thoughtSchema.id],
 
-    friends: //self-refernce
+    friends: [userSchema]
 },
 
     {
@@ -30,10 +30,9 @@ const userSchema = new Schema({
     }
 );
 
-// UserSchema.virtual('username').get(function(){
-//   this.email.split('@')
-//   return username[0]
-// })
+userSchema.virtual('friendCount').get(function(){
+  return friends.length
+})
 
 const User = model('User', userSchema)
 
