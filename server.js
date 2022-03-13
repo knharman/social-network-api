@@ -135,15 +135,15 @@ app.delete('/api/thoughts/:thoughtId', ({ params }, res) => {
         .catch((err) => {
             res.json(err);
         });
-})
+});
 
 //create a reaction stored in a single thought's reactions array
 app.post('/api/thoughts/:thoughtId/reactions', ({ params, body }, res) => {
     Thought.findByIdAndUpdate(
-            params.thoughtId, 
-            {$push: { reactions: body }}, 
-            { new: true }
-        )
+        params.thoughtId,
+        { $push: { reactions: body } },
+        { new: true }
+    )
         .then((data) => {
             res.json(data)
         })
@@ -152,6 +152,50 @@ app.post('/api/thoughts/:thoughtId/reactions', ({ params, body }, res) => {
         });
 });
 
+//delete a reaction by id
+app.delete('/api/thoughts/:thoughtId/reactions', ({ params, body }, res) => {
+    Thought.findByIdAndUpdate(
+        params.thoughtId,
+        { $pull: { reactions: body } },
+        { new: true }
+    )
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+});
+
+//add a new friend to user
+app.post('/api/users/:userId/friends/:friendId', ({ params}, res) => {
+    User.findByIdAndUpdate(
+        params.userId,
+        { $push: { friends: params.friendId } },
+        { new: true }
+    )
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+});
+
+//delete a friend by id
+app.delete('/api/users/:userId/friends/:friendId', ({ params}, res) => {
+    User.findByIdAndUpdate(
+        params.userId,
+        { $pull: { friends: params.friendId } },
+        { new: true }
+    )
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+});
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT}!`);

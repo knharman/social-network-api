@@ -19,16 +19,15 @@ const userSchema = new Schema({
 
     thoughts: [ObjectId],
 
-    friends: [this]
+    friends: [ObjectId]
 },
 
     {
         toJSON: {
             virtuals: true,
             getters: true,
-            id: false
         },
-       
+        id: false
     }
 );
 
