@@ -4,75 +4,157 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-const { Notebook } = require('./models');
+const { Thought, User } = require('./models');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/notebookdb', {
-  useFindAndModify: false,
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/social-network-db', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 });
 
-mongoose.set('useCreateIndex', true);
 mongoose.set('debug', true);
 
-// Create a new notebook
-app.post('/api/notebooks', ({ body }, res) => {
-  Notebook.create(body)
-    .then(dbNotebookData => {
-      res.json(dbNotebookData);
-    })
-    .catch(err => {
-      res.json(err);
-    });
+
+
+//Get all users
+app.get('/api/users', (req, res) => {
+    User.find()
+        .then((data) => {
+            res.json(data);
+        })
+        .catch(err => {
+            res.json(err);
+        });
 });
 
-// Retrieve all notebooks
-app.get('/api/notebooks', (req, res) => {
-  Notebook.find()
-    .then(dbNotebookData => {
-      res.json(dbNotebookData);
-    })
-    .catch(err => {
-      res.json(err);
-    });
+//Get single user by id
+app.get('/api/users/:userId', ({ params }, res) => {
+    User.findById(params.userId)
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+})
+
+// Create a new user
+app.post('/api/users', ({ body }, res) => {
+    User.create(body)
+        .then((data) => {
+            res.json(data);
+        })
+        .catch((err) => {
+            res.json(err);
+        });
 });
 
-// Create a new note for a notebook
-app.post('/api/notebooks/:notebookId/notes', ({ params, body }, res) => {
-  Notebook.findOneAndUpdate(
-    { _id: params.notebookId },
-    { $push: { notes: body } },
-    { new: true }
-  )
-    .then((dbNotebookData) => {
-      if (!dbNotebookData) {
-        res.status(404).json({ message: 'No notebook found with this id.' });
-        return;
-      }
-      res.json(dbNotebookData);
-    })
-    .catch((err) => res.json(err));
-}
-);
-
-// Delete a note from a notebook
-app.delete('/api/notebooks/:notebookId/notes/:noteId', ({ params }, res) => {
-  Notebook.findOneAndUpdate(
-    { _id: params.notebookId },
-    { $pull: { notes: { noteId: params.noteId } } },
-    { new: true }
-  )
-    .then((dbNotebookData) => {
-      res.json(dbNotebookData)
-    })
-    .catch((err) => res.json(err))
+//Update a user by id
+app.put('/api/users/:userId', ({ params, body }, res) => {
+    User.findByIdAndUpdate(params.userId, body, { new: true })
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
 });
+
+//delete a user by id
+app.delete('/api/users/:userId', ({ params }, res) => {
+    User.findByIdAndDelete(params.userId)
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+})
+
+//get all thoughts
+app.get('/api/thoughts', (req, res) => {
+    Thought.find()
+        .then((data) => {
+            res.json(data);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
+//get thought by id
+app.get('/api/thoughts/:thoughtId', ({ params }, res) => {
+    Thought.findById(params.thoughtId)
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+})
+
+//create a new thought
+app.post('/api/thoughts', ({ body }, res) => {
+    const userId = body.userId
+    Thought.create(body)
+        .then(({ _id }) => {
+            return User.findByIdAndUpdate(
+                userId,
+                { $push: { thoughts: _id } },
+                { new: true }
+            );
+        })
+        .then((userData) => {
+            res.json(userData)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+});
+
+//Update a thought by id
+app.put('/api/thoughts/:thoughtId', ({ params, body }, res) => {
+    Thought.findByIdAndUpdate(params.thoughtId, body, { new: true })
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+
+});
+
+//delete a thought by id
+app.delete('/api/thoughts/:thoughtId', ({ params }, res) => {
+    Thought.findByIdAndDelete(params.thoughtId)
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+})
+
+//create a reaction stored in a single thought's reactions array
+app.post('/api/thoughts/:thoughtId/reactions', ({ params, body }, res) => {
+    Thought.findByIdAndUpdate(
+            params.thoughtId, 
+            {$push: { reactions: body }}, 
+            { new: true }
+        )
+        .then((data) => {
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err);
+        });
+});
+
 
 app.listen(PORT, () => {
-  console.log(`App running on port ${PORT}!`);
+    console.log(`App running on port ${PORT}!`);
 });
 
 

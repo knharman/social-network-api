@@ -1,4 +1,5 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, ObjectId } = require('mongoose');
+const Thought = require('./Thought')
 
 const userSchema = new Schema({
     username: {
@@ -16,22 +17,23 @@ const userSchema = new Schema({
         // Must match a valid email address (look into Mongoose's matching validation)
     },
 
-    thoughts: [thoughtSchema.id],
+    thoughts: [ObjectId],
 
-    friends: [userSchema]
+    friends: [this]
 },
 
     {
         toJSON: {
             virtuals: true,
-            getter: true,
+            getters: true,
             id: false
-        }
+        },
+       
     }
 );
 
-userSchema.virtual('friendCount').get(function(){
-  return friends.length
+userSchema.virtual('friendCount').get(function () {
+    return this.friends.length
 })
 
 const User = model('User', userSchema)
